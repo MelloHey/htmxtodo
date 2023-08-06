@@ -97,26 +97,19 @@ func (s *APIServer) handleGetTodo(w http.ResponseWriter, r *http.Request) error 
 }
 
 func (s *APIServer) handleCreateTodo(w http.ResponseWriter, r *http.Request) error {
-	fmt.Printf("HTMX POST? %s\n", r.Method)
+
 	req := new(types.Todo)
 
 	header := r.Header.Get("Content-Type")
 	if header == "application/x-www-form-urlencoded" {
 		r.ParseForm()
 		req.Name = r.FormValue("name")
-		fmt.Printf("req.name ===> %s\n", req.Name)
-		fmt.Printf("Header is: %s\n", r.Header)
-		fmt.Printf("Header is True %s\n", header)
 		if err := json.Unmarshal([]byte(req.Name), &req.Name); err != nil {
 			fmt.Println("ugh: ", err)
 		}
 		time.Sleep(1 * time.Second)
 		tmpl := template.Must(template.ParseFiles("templates/todo/index.html"))
 		tmpl.ExecuteTemplate(w, "todo-list-element", "req.Name")
-		fmt.Print("types.Todo is True", req.Name)
-
-		fmt.Println("info: \n", req)
-		fmt.Println("name: \n", req.Name)
 
 		todo, err := types.NewTodo(req.Name)
 		if err != nil {
