@@ -104,23 +104,17 @@ func (s *APIServer) handleCreateTodo(w http.ResponseWriter, r *http.Request) err
 	if header == "application/x-www-form-urlencoded" {
 		r.ParseForm()
 		req.Name = r.FormValue("name")
-		if err := json.Unmarshal([]byte(req.Name), &req.Name); err != nil {
-			fmt.Println("ugh: ", err)
-		}
 		time.Sleep(1 * time.Second)
-		tmpl := template.Must(template.ParseFiles("templates/todo/index.html"))
-		tmpl.ExecuteTemplate(w, "todo-list-element", "req.Name")
-
 		todo, err := types.NewTodo(req.Name)
 		if err != nil {
 			return err
 		}
-
 		if err := s.store.CreateTodo(todo); err != nil {
 			return err
 		}
-		return WriteHtml(w, http.StatusOK, todo)
-
+		tmpl := template.Must(template.ParseFiles("templates/todo/index.html"))
+		tmpl.ExecuteTemplate(w, "todo-list-element", req)
+		return nil
 	}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		return err
@@ -137,19 +131,11 @@ func (s *APIServer) handleCreateTodo(w http.ResponseWriter, r *http.Request) err
 	return WriteJSON(w, http.StatusOK, todo)
 }
 
-func (s *APIServer) handleCreateTodoHtml(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) TesthandleCreateTodoHtml(w http.ResponseWriter, r *http.Request) error {
 	req := new(types.Todo)
 	r.ParseForm()
 	req.Name = r.FormValue("name")
-	fmt.Printf("req.name ===> %s\n", req.Name)
-	fmt.Printf("Header is: %s\n", r.Header)
-	header := r.Header.Get("Content-Type")
-	if header == "application/x-www-form-urlencoded" {
-
-		fmt.Printf("Header is True %s\n", header)
-
-	}
-
+	time.Sleep(1 * time.Second)
 	todo, err := types.NewTodo(req.Name)
 	if err != nil {
 		return err
@@ -157,8 +143,9 @@ func (s *APIServer) handleCreateTodoHtml(w http.ResponseWriter, r *http.Request)
 	if err := s.store.CreateTodo(todo); err != nil {
 		return err
 	}
-
-	return WriteJSON(w, http.StatusOK, todo)
+	tmpl := template.Must(template.ParseFiles("templates/todo/index.html"))
+	tmpl.ExecuteTemplate(w, "todo-list-element", req)
+	return nil
 }
 
 /* func (s *APIServer) handleItems(w http.ResponseWriter, r *http.Request) error {
