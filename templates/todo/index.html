@@ -18,7 +18,10 @@
             <ul class="list-group fs-5 me-5" id="todo-list">
                 {{ range . }}
                 {{ block "todo-list-element" .}}
-                    <li class="list-group-item bg-primary text-white">{{ .Name }} - {{ .CreatedAt }}</li>
+                    <li class='list-group-item-{{.ID}} bg-primary text-white'>{{ .ID }} - {{ .Name }}
+                    <button hx-delete='/todos/{{.ID}}' hx-target='.list-group-item-{{.ID}}'>
+                        X
+                      </button></li>
                 {{ end }}
                 {{ end }}
             </ul>

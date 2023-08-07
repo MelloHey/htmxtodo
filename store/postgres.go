@@ -12,6 +12,7 @@ import (
 type Storage interface {
 	GetTodos() ([]*types.Todo, error)
 	CreateTodo(*types.Todo) error
+	DeleteTodos(int)
 	//GetItemsByTodoID(int) ([]*types.Item, error)
 	//CreateItem(*types.Item) error
 }
@@ -126,6 +127,16 @@ func (s *PostgresStore) GetTodos() ([]*types.Todo, error) {
 	}
 
 	return todos, nil
+}
+
+func (s *PostgresStore) DeleteTodos(id int) {
+
+	_, err := s.db.Query("delete from todo where id = $1", id)
+
+	if err == nil {
+		fmt.Printf("ERROR DELETING RECORD with id %d\n", id)
+	}
+
 }
 
 /* func (s *PostgresStore) GetItemsByTodoID(id int) ([]*types.Item, error) {

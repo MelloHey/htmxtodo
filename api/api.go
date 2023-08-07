@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"encoding/json"
@@ -52,7 +53,9 @@ func (s *APIServer) Run() {
 
 	r.Use(middleware.Logger)
 	r.HandleFunc("/todos.json", makeHTTPHandleFunc(s.handleTodo))
-	r.HandleFunc("/todos", s.handleGetTodoHtml)
+	r.HandleFunc("/todos", makeHTTPHandleFunc(s.handleTodo))
+	//r.HandleFunc("/todos", s.handleGetTodoHtml)
+	r.HandleFunc("/todos/{id}", makeHTTPHandleFunc(s.handleTodo))
 	//r.HandleFunc("/todos/{id}", makeHTTPHandleFunc(s.handleItems))
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("welcome"))
@@ -65,26 +68,36 @@ func (s *APIServer) Run() {
 
 func (s *APIServer) handleTodo(w http.ResponseWriter, r *http.Request) error {
 	if r.Method == "GET" {
-		return s.handleGetTodo(w, r)
+		head := "text/html"
+		header := r.Header.Get("Accept")
+		fmt.Printf("HEADER: %s\n", head)
+
+		if strings.Contains(header, head) {
+			return s.handleGetTodoHtml(w, r)
+		} else {
+			return s.handleGetTodo(w, r)
+		}
+
 	}
 	if r.Method == "POST" {
 		return s.handleCreateTodo(w, r)
+	}
+	if r.Method == "DELETE" {
+		return s.handleDeleteTodo(w, r)
 	}
 
 	return fmt.Errorf("method not allowed %s", r.Method)
 }
 
 // handler function #1 - returns the index.html template, with film data
-func (s *APIServer) handleGetTodoHtml(w http.ResponseWriter, r *http.Request) {
+func (s *APIServer) handleGetTodoHtml(w http.ResponseWriter, r *http.Request) error {
 	fmt.Println(r.URL.Path)
+
 	tmpl := template.Must(template.ParseFiles("templates/todo/index.html"))
 	todos, _ := s.store.GetTodos()
 
-	for i, s := range todos {
-		fmt.Println(i, s.Name)
-	}
-	fmt.Print("Todos", todos)
 	tmpl.Execute(w, todos)
+	return nil
 }
 
 func (s *APIServer) handleGetTodo(w http.ResponseWriter, r *http.Request) error {
@@ -96,8 +109,21 @@ func (s *APIServer) handleGetTodo(w http.ResponseWriter, r *http.Request) error 
 	return WriteJSON(w, http.StatusOK, todos)
 }
 
-func (s *APIServer) handleCreateTodo(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) handleDeleteTodo(w http.ResponseWriter, r *http.Request) error {
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("ID: %d\n", id)
 
+	s.store.DeleteTodos(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *APIServer) handleCreateTodo(w http.ResponseWriter, r *http.Request) error {
 	req := new(types.Todo)
 
 	header := r.Header.Get("Content-Type")
