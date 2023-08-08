@@ -53,10 +53,10 @@ func (s *APIServer) Run() {
 
 	r.Use(middleware.Logger)
 	r.HandleFunc("/todos.json", makeHTTPHandleFunc(s.handleTodo))
-	r.HandleFunc("/todos", makeHTTPHandleFunc(s.handleTodo))
+	r.HandleFunc("/todos", makeHTTPHandleFunc(s.handleTodos))
 	//r.HandleFunc("/todos", s.handleGetTodoHtml)
 	r.HandleFunc("/todos/{id}", makeHTTPHandleFunc(s.handleTodo))
-	//r.HandleFunc("/todos/{id}", makeHTTPHandleFunc(s.handleItems))
+	r.HandleFunc("/todos/{id}/item", makeHTTPHandleFunc(s.handleItems))
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("welcome"))
 	})
@@ -73,7 +73,31 @@ func (s *APIServer) handleTodo(w http.ResponseWriter, r *http.Request) error {
 		fmt.Printf("HEADER: %s\n", head)
 
 		if strings.Contains(header, head) {
+			fmt.Println("IF STATEMESNT ONE")
 			return s.handleGetTodoHtml(w, r)
+		} else {
+			return s.handleGetTodo(w, r)
+		}
+
+	}
+	if r.Method == "POST" {
+		return s.handleCreateItem(w, r)
+	}
+	if r.Method == "DELETE" {
+		return s.handleDeleteTodo(w, r)
+	}
+
+	return fmt.Errorf("method not allowed %s", r.Method)
+}
+
+func (s *APIServer) handleTodos(w http.ResponseWriter, r *http.Request) error {
+	if r.Method == "GET" {
+		head := "text/html"
+		header := r.Header.Get("Accept")
+		fmt.Printf("HEADER: %s\n", head)
+
+		if strings.Contains(header, head) {
+			return s.handleGetTodosHtml(w, r)
 		} else {
 			return s.handleGetTodo(w, r)
 		}
@@ -89,8 +113,25 @@ func (s *APIServer) handleTodo(w http.ResponseWriter, r *http.Request) error {
 	return fmt.Errorf("method not allowed %s", r.Method)
 }
 
-// handler function #1 - returns the index.html template, with film data
 func (s *APIServer) handleGetTodoHtml(w http.ResponseWriter, r *http.Request) error {
+	fmt.Println("HELLO" + r.URL.Path)
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+
+	tmpl := template.Must(template.ParseFiles("templates/todo/todo.html"))
+	todo, _ := s.store.GetTodosByID(id)
+	fmt.Println(todo)
+	for _, num := range todo {
+		fmt.Println(num)
+	}
+	tmpl.Execute(w, todo)
+	return nil
+}
+
+// handler function #1 - returns the index.html template, with film data
+func (s *APIServer) handleGetTodosHtml(w http.ResponseWriter, r *http.Request) error {
 	fmt.Println(r.URL.Path)
 
 	tmpl := template.Must(template.ParseFiles("templates/todo/index.html"))
@@ -174,19 +215,27 @@ func (s *APIServer) TesthandleCreateTodoHtml(w http.ResponseWriter, r *http.Requ
 	return nil
 }
 
-/* func (s *APIServer) handleItems(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) handleItems(w http.ResponseWriter, r *http.Request) error {
+	fmt.Println("ITEM")
 	if r.Method == "GET" {
 		id, err := getID(r)
 		if err != nil {
 			return err
 		}
+		head := "text/html"
+		header := r.Header.Get("Accept")
+		fmt.Printf("ITEM HEADER: %s\n", head)
 
-		account, err := s.store.GetItemsByTodoID(id)
-		if err != nil {
-			return err
+		if strings.Contains(header, head) {
+			return s.handleGetItemsHtml(w, r)
+		} else {
+			item, err := s.store.GetItemsByTodoID(id)
+			if err != nil {
+				return err
+			}
+			return WriteJSON(w, http.StatusOK, item)
 		}
 
-		return WriteJSON(w, http.StatusOK, account)
 	}
 
 	if r.Method == "POST" {
@@ -194,10 +243,54 @@ func (s *APIServer) TesthandleCreateTodoHtml(w http.ResponseWriter, r *http.Requ
 	}
 
 	return fmt.Errorf("method not allowed %s", r.Method)
-} */
+}
 
-/* func (s *APIServer) handleCreateItem(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) handleGetItemsHtml(w http.ResponseWriter, r *http.Request) error {
+	fmt.Println(r.URL.Path)
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+
+	/* 	data := struct {
+	   		Todo types.Todo
+	   		Item types.Item
+	   	}{
+	   		Todo: types.Todo{
+	   			Name: TodoName,
+	   		},
+	   		Item: types.Item{
+	   			ID:   1,
+	   			Name: "HELLO",
+	   		},
+	   	} */
+
+	tmpl := template.Must(template.ParseFiles("templates/todo/todo.html"))
+	items, _ := s.store.GetItemsByTodoID(id)
+
+	return tmpl.ExecuteTemplate(w, "item-list-element", items)
+}
+
+func (s *APIServer) handleCreateItem(w http.ResponseWriter, r *http.Request) error {
 	req := new(types.Item)
+	header := r.Header.Get("Content-Type")
+	if header == "application/x-www-form-urlencoded" {
+		r.ParseForm()
+		req.Name = r.FormValue("name")
+		req.TodoID = 1
+		req.Done = false
+		time.Sleep(1 * time.Second)
+		todo, err := types.NewItem(req.TodoID, req.Name, req.Done)
+		if err != nil {
+			return err
+		}
+		if err := s.store.CreateItem(todo); err != nil {
+			return err
+		}
+		tmpl := template.Must(template.ParseFiles("templates/todo/todo.html"))
+		tmpl.ExecuteTemplate(w, "item-list-element", req)
+		return nil
+	}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		return err
 	}
@@ -211,7 +304,7 @@ func (s *APIServer) TesthandleCreateTodoHtml(w http.ResponseWriter, r *http.Requ
 	}
 
 	return WriteJSON(w, http.StatusOK, item)
-} */
+}
 
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	w.Header().Add("Content-Type", "application/json")

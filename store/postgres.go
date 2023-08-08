@@ -11,10 +11,11 @@ import (
 
 type Storage interface {
 	GetTodos() ([]*types.Todo, error)
+	GetTodosByID(int) ([]*types.Todo, error)
 	CreateTodo(*types.Todo) error
 	DeleteTodos(int)
-	//GetItemsByTodoID(int) ([]*types.Item, error)
-	//CreateItem(*types.Item) error
+	GetItemsByTodoID(int) ([]*types.Item, error)
+	CreateItem(*types.Item) error
 }
 
 type PostgresStore struct {
@@ -129,6 +130,25 @@ func (s *PostgresStore) GetTodos() ([]*types.Todo, error) {
 	return todos, nil
 }
 
+func (s *PostgresStore) GetTodosByID(id int) ([]*types.Todo, error) {
+	rows, err := s.db.Query("select * from todo where id = $1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	todos := []*types.Todo{}
+
+	for rows.Next() {
+		todo, err := scanIntoTodo(rows)
+		if err != nil {
+			return nil, err
+		}
+		todos = append(todos, todo)
+	}
+
+	return todos, nil
+}
+
 func (s *PostgresStore) DeleteTodos(id int) {
 
 	_, err := s.db.Query("delete from todo where id = $1", id)
@@ -139,7 +159,7 @@ func (s *PostgresStore) DeleteTodos(id int) {
 
 }
 
-/* func (s *PostgresStore) GetItemsByTodoID(id int) ([]*types.Item, error) {
+func (s *PostgresStore) GetItemsByTodoID(id int) ([]*types.Item, error) {
 	rows, err := s.db.Query("select * from item where todo_id = $1", id)
 	if err != nil {
 		return nil, err
@@ -155,9 +175,9 @@ func (s *PostgresStore) DeleteTodos(id int) {
 	}
 
 	return items, nil
-} */
+}
 
-/* func (s *PostgresStore) CreateItem(item *types.Item) error {
+func (s *PostgresStore) CreateItem(item *types.Item) error {
 	query := `insert into item
 	(todo_id, name, created_at, done)
 	values ($1, $2, $3, $4)`
@@ -175,7 +195,7 @@ func (s *PostgresStore) DeleteTodos(id int) {
 	}
 
 	return nil
-} */
+}
 
 func scanIntoTodo(rows *sql.Rows) (*types.Todo, error) {
 	todo := new(types.Todo)
@@ -188,7 +208,7 @@ func scanIntoTodo(rows *sql.Rows) (*types.Todo, error) {
 	return todo, err
 }
 
-/* func scanIntoItem(rows *sql.Rows) (*types.Item, error) {
+func scanIntoItem(rows *sql.Rows) (*types.Item, error) {
 	item := new(types.Item)
 	err := rows.Scan(
 		&item.ID,
@@ -199,7 +219,7 @@ func scanIntoTodo(rows *sql.Rows) (*types.Todo, error) {
 	)
 
 	return item, err
-} */
+}
 
 func (s *PostgresStore) createItemTable() error {
 	query := `create table if not exists item (

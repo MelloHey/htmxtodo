@@ -10,30 +10,31 @@
 
 </head>
 <body class="container">
-
+<h1>{{range .}}{{.Name}}{{end}}</h1>
     <div class="row mt-4 g-4">
         <div class="col-8">
-            <h1 class="mb-4">Todo List</h1>
+            <h1 class="mb-4">Item List</h1>
         
-            <ul class="list-group fs-5 me-5" id="todo-list">
+            <ul class="list-group fs-5 me-5" id="item-list">
+                {{ block "item-list-element" .}}
                 {{ range . }}
-                {{ block "todo-list-element" .}}
-                <a href='/todos/{{.ID}}'><li class='list-group-item-{{.ID}} bg-primary text-white'>{{ .ID }} - {{ .Name }}
-                    <button hx-delete='/todos/{{.ID}}' hx-target='.list-group-item-{{.ID}}'>
+                    <li class='list-group-item-{{.ID}} bg-primary text-white'>{{ .ID }} - {{ .Name }}
+                        <button hx-delete='/todos/{{.ID}}' hx-target='.list-group-item-{{.ID}}'>
                         X
-                      </button></li></a>
+                      </button>
+                    </li>
                 {{ end }}
                 {{ end }}
             </ul>
         </div>
 
         <div class="col-4">
-            <h1 class="mb-4">Add Todo</h1>
+            <h1 class="mb-4">Add Item</h1>
 
-            <form hx-post="/todos" hx-target="#todo-list" hx-swap="beforeend" hx-indicator="#spinner">
+            <form hx-post='todos/1/item' hx-target="#item-list" hx-swap="beforeend" hx-indicator="#spinner">
                 <div class="mb-2">
-                    <label for="todo-name">Name</label>
-                    <input type="text" name="name" id="todo-name" class="form-control" />
+                    <label for="item-name">Name</label>
+                    <input type="text" name="name" id="item-name" class="form-control" />
                 </div>
 
                 <button type="submit" class="btn btn-primary">
