@@ -260,23 +260,27 @@ func (s *APIServer) handleGetItemsHtml(w http.ResponseWriter, r *http.Request) e
 }
 
 func (s *APIServer) handleCreateItem(w http.ResponseWriter, r *http.Request) error {
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
 	req := new(types.Item)
 	header := r.Header.Get("Content-Type")
 	if header == "application/x-www-form-urlencoded" {
 		r.ParseForm()
 		req.Name = r.FormValue("name")
-		req.TodoID = 1
+		req.TodoID = id
 		req.Done = false
 		time.Sleep(1 * time.Second)
-		todo, err := types.NewItem(req.TodoID, req.Name, req.Done)
+		item, err := types.NewItem(req.TodoID, req.Name, req.Done)
 		if err != nil {
 			return err
 		}
-		if err := s.store.CreateItem(todo); err != nil {
+		if err := s.store.CreateItem(item); err != nil {
 			return err
 		}
 		tmpl := template.Must(template.ParseFiles("templates/todo/todo.html"))
-		tmpl.ExecuteTemplate(w, "item-list-element", req)
+		tmpl.ExecuteTemplate(w, "item-list-element", item)
 		return nil
 	}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {

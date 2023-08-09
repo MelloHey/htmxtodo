@@ -11,40 +11,96 @@
 </head>
 <body class="container">
 <h1>{{ (index . 0).Name }}</h1>
-    <div class="row mt-4 g-4">
-        <div class="col-8">
-            <h1 class="mb-4">Item List</h1>
-        
-            <ul class="list-group fs-5 me-5" id="item-list">
-                {{ block "item-list-element" .}}
-                {{ range . }}
-                    <li class='list-group-item-{{.ID}} bg-primary text-white'>{{ .ID }} - {{ .Todo.Name }}
-                        <button hx-delete='/todos/{{.ID}}' hx-target='.list-group-item-{{.ID}}'>
-                        X
-                      </button>
-                    </li>
-                {{ end }}
-                {{ end }}
-            </ul>
-        </div>
-
-        <div class="col-4">
-            <h1 class="mb-4">Add Item</h1>
-
-            <form hx-post='1/item' hx-target="#item-list" hx-swap="beforeend" hx-indicator="#spinner">
-                <div class="mb-2">
-                    <label for="item-name">Name</label>
-                    <input type="text" name="name" id="item-name" class="form-control" />
+<section class="vh-100">
+    <div class="container py-5 h-100">
+      <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col">
+          <div class="card" id="list1" style="border-radius: .75rem; background-color: #eff1f2;">
+            <div class="card-body py-4 px-4 px-md-5">
+  
+              <p class="h1 text-center mt-3 mb-4 pb-3 text-primary">
+                <i class="fas fa-check-square me-1"></i>
+                <u>My Items-s with htmx and Go</u>
+              </p>
+              <form hx-post="1/item" hx-target="#item-list" hx-swap="beforebegin" hx-indicator="#spinner">
+              <div class="pb-2">
+                <div class="card">
+                  <div class="card-body">
+                    <div class="d-flex flex-row align-items-center">
+                      <input type="text" class="form-control form-control-lg" name="name" id="item-name"
+                        placeholder="Add new...">
+                      <a href="#!" data-mdb-toggle="tooltip" title="Set due date"><i
+                          class="fas fa-calendar-alt fa-lg me-3"></i></a>
+                      <div>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="spinner-border spinner-border-sm htmx-indicator" id="spinner" role="status" aria-hidden="true"></span>
+                            Add
+                        </button>
+                    
+                      </div>
+                    </div>
+                  </div>
                 </div>
-
-                <button type="submit" class="btn btn-primary">
-                    <span class="spinner-border spinner-border-sm htmx-indicator" id="spinner" role="status" aria-hidden="true"></span>
-                    Submit
-                </button>
+              </div>
             </form>
-        </div>
+  
+              <hr class="my-4">
+  
+              <div class="d-flex justify-content-end align-items-center mb-4 pt-2 pb-3">
+                <p class="small mb-0 me-2 text-muted">Filter</p>
+                <select class="select">
+                  <option value="1">All</option>
+                  <option value="2">Completed</option>
+                  <option value="3">Active</option>
+                  <option value="4">Has due date</option>
+                </select>
+                <p class="small mb-0 ms-4 me-2 text-muted">Sort</p>
+                <select class="select">
+                  <option value="1">Added date</option>
+                  <option value="2">Due date</option>
+                </select>
+                <a href="#!" style="color: #23af89;" data-mdb-toggle="tooltip" title="Ascending"><i
+                    class="fas fa-sort-amount-down-alt ms-2"></i></a>
+              </div>
+              {{ range . }}
+              {{ block "item-list-element" .}}
+              <ul id="item-list" class="list-group list-group-horizontal rounded-0 bg-transparent">
+                <li
+                  class="list-group-item d-flex align-items-center ps-0 pe-3 py-1 rounded-0 border-0 bg-transparent">
+                  <div class="form-check">
+                    <input class="form-check-input me-0" type="checkbox" value="" id="flexCheckChecked1"
+                      aria-label="..." checked />
+                  </div>
+                </li>
+                <li class="list-group-item px-3 py-1 d-flex align-items-center flex-grow-1 border-0 bg-transparent">
+                    <p class="lead fw-normal mb-0">
+                        {{ .Todo.Name }}
+                    </p>
+                </li>
 
+                <li class="list-group-item ps-3 pe-0 py-1 rounded-0 border-0 bg-transparent">
+                  <div class="d-flex flex-row justify-content-end mb-1">
+                    <a href="#!" class="text-info" data-mdb-toggle="tooltip" title="Edit todo"><i
+                        class="fas fa-pencil-alt me-3"></i></a>
+                    <a href="#!" class="text-danger" data-mdb-toggle="tooltip" title="Delete todo"><i
+                        class="fas fa-trash-alt"></i></a>
+                  </div>
+                  <div class="text-end text-muted">
+                    <a href="#!" class="text-muted" data-mdb-toggle="tooltip" title="Created date">
+                      <p class="small mb-0"><i class="fas fa-info-circle me-2"></i>{{.Todo.CreatedAt.Format "02 Jan 2006" }}</p>
+                    </a>
+                  </div>
+                </li>
+                
+              </ul>
+              {{ end }}
+              {{ end }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </section>
 
 </body>
 </html>

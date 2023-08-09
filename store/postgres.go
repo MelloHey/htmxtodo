@@ -108,7 +108,7 @@ func (s *PostgresStore) CreateTodo(todo *types.Todo) error {
 }
 
 func (s *PostgresStore) GetTodos() ([]*types.Todo, error) {
-	rows, err := s.db.Query("select * from todo")
+	rows, err := s.db.Query("select * from todo order by todo.created_at DESC")
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (s *PostgresStore) GetTodos() ([]*types.Todo, error) {
 }
 
 func (s *PostgresStore) GetTodosByID(id int) ([]*types.Item, error) {
-	rows, err := s.db.Query("SELECT todo.name, item.name FROM Item INNER JOIN Todo ON item.todo_id = todo.id WHERE todo.id  = $1", id)
+	rows, err := s.db.Query("SELECT Todo.name, CASE WHEN Item.name IS NULL THEN 'No Items' ELSE Item.name END as ItemName FROM Item RIGHT JOIN Todo ON Item.todo_id = Todo.id where todo.id =$1", id)
 	if err != nil {
 		return nil, err
 	}
