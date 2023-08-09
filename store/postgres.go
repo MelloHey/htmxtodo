@@ -23,13 +23,10 @@ type PostgresStore struct {
 }
 
 func NewPostgresStore() (*PostgresStore, error) {
-	fmt.Println("YOYO")
 	db_user := utils.ViperEnvVariable("DB_USER")
 	db_name := utils.ViperEnvVariable("DB_NAME")
 	db_password := utils.ViperEnvVariable("DB_PASSWORD")
-	fmt.Printf("DB_PASSWORD: %s\n", db_name)
 	connStr := "user=" + db_user + " dbname=" + db_name + " password=" + db_password + " sslmode=disable"
-	fmt.Printf("DB_PASSWORD: %s\n", connStr)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
@@ -71,7 +68,6 @@ func (s *PostgresStore) createTodoTable() error {
 }
 
 func (s *PostgresStore) createTestTable() error {
-	fmt.Println("TST")
 	query := `create table if not exists test (
 		id serial primary key,
 		name varchar(100),
@@ -83,7 +79,6 @@ func (s *PostgresStore) createTestTable() error {
 }
 
 func (s *PostgresStore) createTestTwoTable() error {
-	fmt.Println("TST TWO")
 	query := `create table if not exists testtwo (
 		id serial primary key,
 		name varchar(100),

@@ -70,10 +70,8 @@ func (s *APIServer) handleTodo(w http.ResponseWriter, r *http.Request) error {
 	if r.Method == "GET" {
 		head := "text/html"
 		header := r.Header.Get("Accept")
-		fmt.Printf("HEADER: %s\n", head)
 
 		if strings.Contains(header, head) {
-			fmt.Println("IF STATEMESNT ONE")
 			return s.handleGetTodoHtml(w, r)
 		} else {
 			return s.handleGetTodoById(w, r)
@@ -94,7 +92,6 @@ func (s *APIServer) handleTodos(w http.ResponseWriter, r *http.Request) error {
 	if r.Method == "GET" {
 		head := "text/html"
 		header := r.Header.Get("Accept")
-		fmt.Printf("HEADER: %s\n", head)
 
 		if strings.Contains(header, head) {
 			return s.handleGetTodosHtml(w, r)
@@ -114,7 +111,6 @@ func (s *APIServer) handleTodos(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *APIServer) handleGetTodoHtml(w http.ResponseWriter, r *http.Request) error {
-	fmt.Println("HELLO" + r.URL.Path)
 	id, err := getID(r)
 	if err != nil {
 		return err
@@ -122,17 +118,13 @@ func (s *APIServer) handleGetTodoHtml(w http.ResponseWriter, r *http.Request) er
 
 	tmpl := template.Must(template.ParseFiles("templates/todo/todo.html"))
 	todo, _ := s.store.GetTodosByID(id)
-	fmt.Println(todo)
-	for _, num := range todo {
-		fmt.Println(num)
-	}
+
 	tmpl.Execute(w, todo)
 	return nil
 }
 
 // handler function #1 - returns the index.html template, with film data
 func (s *APIServer) handleGetTodosHtml(w http.ResponseWriter, r *http.Request) error {
-	fmt.Println(r.URL.Path)
 
 	tmpl := template.Must(template.ParseFiles("templates/todo/index.html"))
 	todos, _ := s.store.GetTodos()
@@ -168,7 +160,6 @@ func (s *APIServer) handleDeleteTodo(w http.ResponseWriter, r *http.Request) err
 	if err != nil {
 		return err
 	}
-	fmt.Printf("ID: %d\n", id)
 
 	s.store.DeleteTodos(id)
 	if err != nil {
@@ -229,7 +220,6 @@ func (s *APIServer) TesthandleCreateTodoHtml(w http.ResponseWriter, r *http.Requ
 }
 
 func (s *APIServer) handleItems(w http.ResponseWriter, r *http.Request) error {
-	fmt.Println("ITEM")
 	if r.Method == "GET" {
 		id, err := getID(r)
 		if err != nil {
@@ -237,7 +227,6 @@ func (s *APIServer) handleItems(w http.ResponseWriter, r *http.Request) error {
 		}
 		head := "text/html"
 		header := r.Header.Get("Accept")
-		fmt.Printf("ITEM HEADER: %s\n", head)
 
 		if strings.Contains(header, head) {
 			return s.handleGetItemsHtml(w, r)
@@ -259,24 +248,10 @@ func (s *APIServer) handleItems(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *APIServer) handleGetItemsHtml(w http.ResponseWriter, r *http.Request) error {
-	fmt.Println(r.URL.Path)
 	id, err := getID(r)
 	if err != nil {
 		return err
 	}
-
-	/* 	data := struct {
-	   		Todo types.Todo
-	   		Item types.Item
-	   	}{
-	   		Todo: types.Todo{
-	   			Name: TodoName,
-	   		},
-	   		Item: types.Item{
-	   			ID:   1,
-	   			Name: "HELLO",
-	   		},
-	   	} */
 
 	tmpl := template.Must(template.ParseFiles("templates/todo/todo.html"))
 	items, _ := s.store.GetItemsByTodoID(id)
