@@ -76,7 +76,7 @@ func (s *APIServer) handleTodo(w http.ResponseWriter, r *http.Request) error {
 			fmt.Println("IF STATEMESNT ONE")
 			return s.handleGetTodoHtml(w, r)
 		} else {
-			return s.handleGetTodo(w, r)
+			return s.handleGetTodoById(w, r)
 		}
 
 	}
@@ -143,6 +143,19 @@ func (s *APIServer) handleGetTodosHtml(w http.ResponseWriter, r *http.Request) e
 
 func (s *APIServer) handleGetTodo(w http.ResponseWriter, r *http.Request) error {
 	todos, err := s.store.GetTodos()
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, todos)
+}
+
+func (s *APIServer) handleGetTodoById(w http.ResponseWriter, r *http.Request) error {
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+	todos, err := s.store.GetTodosByID(id)
 	if err != nil {
 		return err
 	}

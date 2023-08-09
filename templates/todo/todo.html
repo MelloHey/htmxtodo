@@ -10,7 +10,7 @@
 
 </head>
 <body class="container">
-<h1>{{range .}}{{.Name}}{{end}}</h1>
+<h1>{{ (index . 0).Name }}</h1>
     <div class="row mt-4 g-4">
         <div class="col-8">
             <h1 class="mb-4">Item List</h1>
@@ -18,7 +18,7 @@
             <ul class="list-group fs-5 me-5" id="item-list">
                 {{ block "item-list-element" .}}
                 {{ range . }}
-                    <li class='list-group-item-{{.ID}} bg-primary text-white'>{{ .ID }} - {{ .Name }}
+                    <li class='list-group-item-{{.ID}} bg-primary text-white'>{{ .ID }} - {{ .Todo.Name }}
                         <button hx-delete='/todos/{{.ID}}' hx-target='.list-group-item-{{.ID}}'>
                         X
                       </button>
@@ -31,7 +31,7 @@
         <div class="col-4">
             <h1 class="mb-4">Add Item</h1>
 
-            <form hx-post='todos/1/item' hx-target="#item-list" hx-swap="beforeend" hx-indicator="#spinner">
+            <form hx-post='1/item' hx-target="#item-list" hx-swap="beforeend" hx-indicator="#spinner">
                 <div class="mb-2">
                     <label for="item-name">Name</label>
                     <input type="text" name="name" id="item-name" class="form-control" />
