@@ -11,7 +11,7 @@ import (
 
 type Storage interface {
 	GetTodos() ([]*types.Todo, error)
-	GetTodosByID(int) ([]*types.Item, error)
+	GetTodosByID(int) ([]*types.Todo, error)
 	CreateTodo(*types.Todo) error
 	DeleteTodos(int)
 	GetItemsByTodoID(int) ([]*types.Item, error)
@@ -125,13 +125,13 @@ func (s *PostgresStore) GetTodos() ([]*types.Todo, error) {
 	return todos, nil
 }
 
-func (s *PostgresStore) GetTodosByID(id int) ([]*types.Item, error) {
-	rows, err := s.db.Query("SELECT Todo.name, CASE WHEN Item.name IS NULL THEN 'No Items' ELSE Item.name END as ItemName FROM Item RIGHT JOIN Todo ON Item.todo_id = Todo.id where todo.id =$1", id)
+func (s *PostgresStore) GetTodosByID(id int) ([]*types.Todo, error) {
+	rows, err := s.db.Query("SELECT Todo.name, Todo.id, CASE WHEN Item.name IS NULL THEN 'No Items' ELSE Item.name END as name FROM Item RIGHT JOIN Todo ON Item.todo_id = Todo.id where todo.id =$1", id)
 	if err != nil {
 		return nil, err
 	}
 
-	items := []*types.Item{}
+	items := []*types.Todo{}
 
 	for rows.Next() {
 		item, err := scanIntoTodoTwo(rows)
@@ -203,15 +203,16 @@ func scanIntoTodo(rows *sql.Rows) (*types.Todo, error) {
 	return todo, err
 }
 
-func scanIntoTodoTwo(rows *sql.Rows) (*types.Item, error) {
-	item := new(types.Item)
+func scanIntoTodoTwo(rows *sql.Rows) (*types.Todo, error) {
+	todo := new(types.Todo)
 
 	err := rows.Scan(
-		&item.Name,
-		&item.Todo.Name,
+		&todo.Name,
+		&todo.ID,
+		&todo.Item.Name,
 	)
 
-	return item, err
+	return todo, err
 }
 
 func scanIntoItem(rows *sql.Rows) (*types.Item, error) {
