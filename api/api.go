@@ -23,11 +23,6 @@ type APIServer struct {
 	store      store.Storage
 }
 
-type Film struct {
-	Title    string
-	Director string
-}
-
 func NewAPIServer(listenAddr string, store store.Storage) *APIServer {
 	return &APIServer{
 		listenAddr: listenAddr,
